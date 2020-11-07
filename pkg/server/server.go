@@ -1,7 +1,7 @@
 package server
 
 import (
-	"net/url"
+	
 	"io"
 	"log"
 	"bytes"
@@ -16,15 +16,6 @@ type Server struct {
 	addr string
 	mu sync.RWMutex
 	handlers map[string]HandlerFunc
-}
-
-//Request ...
-type Request struct {
-	Conn        net.Conn
-	QueryParams url.Values
-	PathParams  map[string]string
-	Headers     map[string]string
-	Body        []byte
 }
 
 func NewServer(addr string) *Server {
