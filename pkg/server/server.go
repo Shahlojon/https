@@ -100,6 +100,8 @@ func (s *Server) handle(conn net.Conn) {
 
 	  req.Headers = mp
 
+	  req.Body=data[hLE+4:]
+
 	  reqLine := string(data[:rLE])
 	  parts := strings.Split(reqLine, " ")
   
