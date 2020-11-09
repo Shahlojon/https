@@ -130,9 +130,9 @@ func (s *Server) handle(conn net.Conn) {
 	// 	  break
 	// 	}
 	//   }
-	  pathParam, hr=s.checkPath(uri.Path)
+	  pathParam, hr:=s.checkPath(uri.Path)
 	  if hr!=nil {
-		req.PathParams = pathP
+		req.PathParams = pathParam
 		handler = hr
 	  }
 	  s.mu.RUnlock()
