@@ -28,6 +28,7 @@ func execute(host string, port string) (err error) {
 		body:="Welcome to our web-site"
 		id:=req.QueryParams["id"]
 		log.Print(id)
+		
 		_, err=req.Conn.Write([]byte(
 			"HTTP/1.1 200 OK\r\n"+
 			"Content-Lenght: "+ strconv.Itoa(len(body))+"\r\n"+
@@ -40,6 +41,11 @@ func execute(host string, port string) (err error) {
 		if err!=nil {
 			log.Print(err)
 		}
+	})
+
+	srv.Register("/payment/{id}", func(req *server.Request) {
+		id:=req.PathParams["id"]
+		log.Print(id)
 	})
 
 	srv.Register("/about", func(req *server.Request) {
