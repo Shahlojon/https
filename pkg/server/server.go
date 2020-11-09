@@ -1,6 +1,7 @@
 package server
 
 import (
+	"net/url"
 	
 	"io"
 	"log"
@@ -10,12 +11,17 @@ import (
 	"net"
 )
 
-type HandlerFunc func(conn net.Conn)
+type HandlerFunc func(req *Request) 
 
 type Server struct {
 	addr string
 	mu sync.RWMutex
 	handlers map[string]HandlerFunc
+}
+
+type Request struct {
+	Conn net.Conn
+	QueryParams url.Values
 }
 
 func NewServer(addr string) *Server {
@@ -47,7 +53,6 @@ func (s *Server) Start() (err error) {
 		}
 
 		go s.handle(conn)
-
 	}
 }
 
@@ -57,6 +62,7 @@ func (s *Server) handle(conn net.Conn) {
 	buf := make([]byte, 4096)
 	for {
 	  n, err := conn.Read(buf)
+	  var req Request
 	  if err == io.EOF {
 		log.Printf("%s", buf[:n])
 	  }
@@ -87,9 +93,25 @@ func (s *Server) handle(conn net.Conn) {
 		log.Println("ErrHTTPVersionNotValid")
 		return
 	  }
-  
-	  var handler = func(conn net.Conn) {
-		conn.Close()
+	  decoded, err:=url.PathUnescape(path)
+	  if err!=nil {
+		  log.Println(err)
+		  return
+	  }
+	  log.Println(decoded)
+
+	  uri, err:=url.ParseRequestURI(decoded)
+	  if err!=nil {
+		log.Println(err)
+		return
+	  }
+	  
+	  req.Conn = conn
+	  req.QueryParams = uri.Query()
+	//   log.Print(uri.Path)
+	//   log.Print(uri.Query())
+	  var handler = func(req *Request) {
+		req.Conn.Close()
 	  }
 	  s.mu.RLock()
 	  for i := 0; i < len(s.handlers); i++ {
@@ -99,6 +121,6 @@ func (s *Server) handle(conn net.Conn) {
 		}
 	  }
 	  s.mu.RUnlock()
-	  handler(conn) 
+	  handler(&req) 
 	} 
 }
