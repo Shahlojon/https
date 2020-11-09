@@ -23,6 +23,8 @@ type Request struct {
 	Conn net.Conn
 	QueryParams url.Values
 	PathParams map[string]string
+	Headers map[string]string
+	Body []byte
 }
 
 func NewServer(addr string) *Server {
@@ -63,7 +65,7 @@ func (s *Server) handle(conn net.Conn) {
 	buf := make([]byte, 4096)
 	for {
 	  n, err := conn.Read(buf)
-	  var req Request
+
 	  if err == io.EOF {
 		log.Printf("%s", buf[:n])
 	  }
@@ -71,7 +73,8 @@ func (s *Server) handle(conn net.Conn) {
 		log.Println(err)
 		return
 	  }
-  
+	  
+	  var req Request
 	  data := buf[:n]
 	  rLD := []byte{'\r', '\n'}
 	  rLE := bytes.Index(data, rLD)
@@ -79,7 +82,24 @@ func (s *Server) handle(conn net.Conn) {
 		log.Println("ErrBadRequest")
 		return
 	  }
-  
+	  
+	  hld:=[]byte{'\r', '\n', '\r', '\n'}
+	  hLE := bytes.Index(data, hld)
+	  if rLE == -1 {
+		return
+	  }
+
+	  headersLine := string(data[rLE:hLE])
+	  headers := strings.Split(headersLine, "\r\n")[1:]
+
+	  mp := make(map[string]string)
+	  for _, v := range headers {
+		headerLine := strings.Split(v, ": ")
+		mp[headerLine[0]] = headerLine[1]
+	  }
+
+	  req.Headers = mp
+
 	  reqLine := string(data[:rLE])
 	  parts := strings.Split(reqLine, " ")
   
