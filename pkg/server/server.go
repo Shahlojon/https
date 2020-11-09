@@ -115,7 +115,7 @@ func (s *Server) handle(conn net.Conn) {
 	  }
 	  s.mu.RLock()
 	  for i := 0; i < len(s.handlers); i++ {
-		if hr, found := s.handlers[path]; found {
+		if hr, found := s.handlers[uri.Path]; found {
 		  handler = hr
 		  break
 		}
